@@ -1,0 +1,65 @@
+---
+
+- name: Test distribution
+  ansible.builtin.assert:
+    that: >
+      ansible_facts.os_family in ['Debian']
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install new packages
+  ansible.builtin.apt: "name={{ item }} state=latest"
+  with_items: "{{ ca_packages }}"
+
+- name: Make sure the folder exist
+  ansible.builtin.file:
+    path: "{{ ca_path }}"
+    mode: '0700'
+    state: directory
+
+- name: Add CA file
+  ansible.builtin.copy:
+    dest: "{{ item.dest_base | default(ca_path) ~ '/' ~ item.name }}"
+    content: "{{ item.content }}"
+    owner: "{{ item.owner | default(ca_owner) }}"
+    group: "{{ item.group | default(ca_group) }}"
+    mode: "{{ item.mode | default(ca_mode) }}"
+    state: "{{ item.state | default(omit) }}"
+  when: ('state' not in item or item.state != 'absent') and item.content is defined
+  loop: "{{ ca_certs }}"
+  notify:
+    - "Update CA"
+
+- name: Upload CA
+  ansible.builtin.uri:
+    url: "{{ item.url }}"
+    dest: "{{ item.dest_base | default(ca_path) ~ '/' ~ item.name }}"
+    mode: "{{ item.mode | default(ca_mode) }}"
+    owner: "{{ item.owner | default(ca_owner) }}"
+    group: "{{ item.group | default(ca_group) }}"
+    status_code: "200, 304"
+    follow_redirects: all
+  register: _download_result
+  until: _download_result is succeeded
+  retries: 5
+  delay: 2
+  # run_once: true  # <-- this can't be set due to multi-arch support
+  check_mode: false
+  when: ('state' not in item or item.state != 'absent') and item.url is defined
+  loop: "{{ ca_certs }}"
+  notify:
+    - "Update CA"
+
+- name: Remove CA file
+  ansible.builtin.file:
+    path: "{{ item.dest_base | default(ca_path) ~ '/' ~ item.name }}"
+    state: absent
+  when: >
+    'state' in item and
+    item.state == 'absent'
+  loop: "{{ ca_certs }}"
+  notify:
+    - "Update CA fresh"

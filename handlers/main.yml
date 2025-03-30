@@ -1,0 +1,11 @@
+---
+
+- name: Update CA
+  become: yes
+  ansible.builtin.shell: 
+    cmd: update-ca-certificates
+
+- name: Update CA fresh
+  become: yes
+  ansible.builtin.shell: 
+    cmd: update-ca-certificates --fresh

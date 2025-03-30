@@ -1,0 +1,22 @@
+---
+
+galaxy_info:
+  role_name: ansible-ca
+  author: dzalunin
+  description: Update ca certificates for Linux.
+  company: ""
+  license: "license (BSD, MIT)"
+  min_ansible_version: 2.10
+  platforms:
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+        - bookworm
+    - name: Ubuntu
+      versions:
+        - bionic
+        - focal
+        - jammy
+  galaxy_tags:
+    - ca

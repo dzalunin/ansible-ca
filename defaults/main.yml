@@ -1,0 +1,18 @@
+---
+
+ca_path: /usr/local/share/ca-certificates
+
+# Default cert owner
+ca_owner: root
+
+# Default cert group
+ca_group: root
+
+# Defautl cert mode
+ca_mode: "0644"
+
+# List of certificates (see README for more details)
+ca_certs: []
+
+ca_packages:
+  - ca-certificates
